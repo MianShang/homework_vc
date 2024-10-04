@@ -124,13 +124,16 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 bool darw = false;
 int x, y, g_x, g_y, g_drawType=0;
+int g_backgroud = 0;
 
 HDC hdc;
-HPEN myPen;
-HPEN osPen;
+HPEN myPen, osPen;
 HBRUSH myBrush, osBrush;
+HWND eraser;
+HICON er_img;
+RECT area;
 
-
+#define eraser_id 999
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -141,29 +144,68 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_CREATE:
 
+        eraser = 
+            CreateWindow(L"button", L"지우기", WS_CHILD | WS_VISIBLE | BS_ICON, 20, 20, 40, 40, hWnd, (HMENU)eraser_id, hInst, NULL);
         
+        er_img = LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1));
 
+        SendMessageW(eraser, BM_SETIMAGE, IMAGE_ICON, (LPARAM)er_img);
         break;
 
     case WM_LBUTTONDOWN:
 
+        if(g_backgroud==0){
+            myBrush = CreateSolidBrush(RGB(255, 255, 255));
+        }
+        else if (g_backgroud == 1) {
+            myBrush = CreateSolidBrush(RGB(255, 0, 255));
+        }
+        else if (g_backgroud == 2) {
+            myBrush = CreateSolidBrush(RGB(0, 0, 255));
+        }
+       
         myPen = CreatePen(PS_SOLID, 5, RGB(0, 0, 0));
 
-        darw = true;
+        if (x < area.left+10 || y < area.top+10) {
+            darw = false;
+        }
+        else if (x > area.right-10 || y > area.bottom-10) {
+            darw = false;
+        }
+        else {
+            darw = true;
+        }
+        
+
         hdc = GetDC(hWnd);
 
+        osBrush = (HBRUSH)SelectObject(hdc, myBrush);
         osPen = (HPEN)SelectObject(hdc, myPen);
 
         g_x = x;
         g_y = y;
 
-        if (0 == g_drawType) {
+        if ((0 == g_drawType) && darw) {
             MoveToEx(hdc, g_x, g_y, NULL);
         }
 
         break;
 
     case WM_MOUSEMOVE:
+
+        if (x < area.left + 10)  {
+            darw = false;
+        }
+        else if (y < area.top + 10) {
+            darw = false;
+        }
+        else if (x > area.right - 10) {
+            darw = false;
+        }
+        else if (y > area.bottom - 10) {
+            darw = false;
+        }
+       
 
         if (darw) {
             
@@ -178,20 +220,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_LBUTTONUP:
-        if (0 == g_drawType) {
+        if ((0 == g_drawType) && darw) {
             LineTo(hdc, x, y);
         }
-        else if (1 == g_drawType) {
+        else if ((1 == g_drawType) && darw) {
             Rectangle(hdc, g_x, g_y, x, y);
         }
-        else if (2 == g_drawType) {
+        else if ((2 == g_drawType) && darw) {
             Ellipse(hdc, g_x, g_y, x, y);
         }
 
         darw = false;
+
+        DeleteObject(myBrush);
         DeleteObject(myPen);
         ReleaseDC(hWnd, hdc);
         break;
+
+    case WM_SIZE:
+        GetClientRect(hWnd, &area);
 
     case WM_COMMAND:
     {
@@ -199,6 +246,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // 메뉴 선택을 구문 분석합니다:
         switch (wmId)
         {
+
+            ///지우기 기능
+        case eraser_id:
+            InvalidateRect(hWnd,NULL,TRUE);
+            break;
+
             /// 선 그리기
         case ID_32771:
             g_drawType = 0;
@@ -221,14 +274,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             ///면색 흰색
         case ID_32775:
+            g_backgroud = 0;
             break;
 
             ///면색 보라색
         case ID_32776:
+            g_backgroud = 1;
             break;
 
             ///면색 파란색
         case ID_32777:
+            g_backgroud = 2;
             break;
 
         case IDM_ABOUT:
@@ -251,13 +307,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         HDC hdc = BeginPaint(hWnd, &ps);
         // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
 
-
+        Rectangle(hdc, area.left + 5, area.top + 5, area.right - 5, area.bottom - 5);
         
 
         EndPaint(hWnd, &ps);
     }
     break;
     case WM_DESTROY:
+
+        DestroyWindow(eraser);
         PostQuitMessage(0);
         break;
     default:

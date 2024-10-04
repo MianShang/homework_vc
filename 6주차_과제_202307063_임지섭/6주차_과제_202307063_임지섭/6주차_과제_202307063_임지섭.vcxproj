@@ -140,6 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="6주차_과제_202307063_임지섭.ico" />
+    <Image Include="ERASE.ico" />
     <Image Include="small.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
