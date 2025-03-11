@@ -179,14 +179,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             SetTimer(hWnd, 3, 1000, NULL);*/
 
-
-            g_item.left = rand() % 500;
-            g_item.top = rand() % 500;
-            if (g_item.top < 80) {
-                g_item.top = 80;
-            }
-            g_item.right = g_item.left + 50;
-            g_item.bottom = g_item.top + 50;
+           
 
 
 
@@ -212,6 +205,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             }
 
+            g_item.left = rand() % g_area.right;
+            g_item.top = rand() % g_area.top;
+            if (g_item.top < 80) {
+                g_item.top = 80;
+            }
+            g_item.right = g_item.left + 50;
+            g_item.bottom = g_item.top + 50;
             
             
 
@@ -224,7 +224,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
              ///wParam은 SetTimer에서 지정한 ID 값을 가지고 호출된다.
             
             if (3 == wParam) {
-                timer.right -= timer_right;
+                timer.right -= 50;
                 if (timer.right < timer.left) {
                     g_start = 0;
                     KillTimer(hWnd, 3);
